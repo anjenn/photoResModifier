@@ -2,12 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-original_img = Image.open('./ctn_01.jpg')
-
-resized_img = original_img.resize((256, 256), Image.LANCZOS)
-resized_array = np.array(resized_img)
-X_img = np.reshape(resized_array, (resized_array.shape[0] * resized_array.shape[1], 3))
-
+def apply_sepia(image):
+    sepia_filter = np.array([[0.393, 0.769, 0.189],
+                             [0.349, 0.686, 0.168],
+                             [0.272, 0.534, 0.131]])
+    return np.clip(image @ sepia_filter.T, 0, 255).astype(np.uint8)
 
 def find_closest_centroids(X, centroids):
     K = centroids.shape[0]
@@ -28,8 +27,8 @@ def compute_centroids(X, idx, K):
     centroids = np.zeros((K, n))
 
     for k in range(K):   
-        points = X[idx == k] # Your code here to get a list of all data points in X assigned to centroid k  
-        centroids[k] = np.mean(points, axis = 0) # Your code here to compute the mean of the points assigned
+        points = X[idx == k] # to get a list of all data points in X assigned to centroid k  
+        centroids[k] = np.mean(points, axis = 0) # to compute the mean of the points assigned
     
     return centroids
 
@@ -67,6 +66,20 @@ def kMeans_init_centroids(X, K):
 K = 16
 max_iters = 10
 
+original_img = Image.open('./ctn_01.jpg')
+
+resized_img = original_img.resize((256, 256), Image.LANCZOS)
+resized_array = np.array(resized_img)
+
+########################################################################
+# Experiementing with compression across different color filters
+sepia_image = apply_sepia(resized_array)
+X_sepia = np.reshape(sepia_image, (sepia_image.shape[0] * sepia_image.shape[1], 3))
+X_img = X_sepia
+########################################################################
+
+X_img = np.reshape(resized_array, (resized_array.shape[0] * resized_array.shape[1], 3))
+
 # Using the function you have implemented above. 
 initial_centroids = kMeans_init_centroids(X_img, K)
 
@@ -83,12 +96,12 @@ idx = find_closest_centroids(X_img, centroids)
 X_recovered = centroids[idx.astype(int), :] 
 
 
-X_recovered = np.clip(centroids[idx.astype(int), :], 0, 255)  # Ensure values are within valid range #############
+X_recovered = np.clip(centroids[idx.astype(int), :], 0, 255)  # Ensure values are within valid range
 
 # Reshape image into proper dimensions
 X_recovered = np.reshape(X_recovered, resized_array.shape) 
 
-X_recovered = X_recovered.astype(np.uint8)  # Convert to integer format for display #####################
+X_recovered = X_recovered.astype(np.uint8)  # Convert to integer format for display
 
 
 # Display original image
@@ -105,6 +118,7 @@ ax[1].set_title('Compressed with %d colours'%K)
 ax[1].axis('off')
 plt.show()
 
+# Calculating distortions
 distortions = []
 for i in range(max_iters):
     idx = find_closest_centroids(X_img, centroids)
