@@ -33,7 +33,7 @@ def compute_centroids(X, idx, K):
     return centroids
 
 
-def run_kMeans(X, initial_centroids, max_iters=10, plot_progress=True):
+def run_kMeans(X, initial_centroids, max_iters=15, plot_progress=True):
     m, n = X.shape
     K = initial_centroids.shape[0]
     centroids = initial_centroids
@@ -46,7 +46,7 @@ def run_kMeans(X, initial_centroids, max_iters=10, plot_progress=True):
         idx = find_closest_centroids(X, centroids)
 
         centroids = compute_centroids(X, idx, K)
-        if plot_progress and (i % 2 == 0 or i == max_iters - 1):  
+        if plot_progress and (i % 5 == 0 or i == max_iters - 1):  
             X_recovered = centroids[idx, :]
             X_recovered = np.reshape(X_recovered, (256, 256, 3))
 
@@ -63,20 +63,20 @@ def kMeans_init_centroids(X, K):
     
     return centroids
 
-K = 16
-max_iters = 10
+K = 25 ## CHANGE THIS!
+max_iters = 20 ## CHANGE THIS!
 
-original_img = Image.open('./ctn_01.jpg')
+original_img = Image.open('./original_image.jpg')
 
 resized_img = original_img.resize((256, 256), Image.LANCZOS)
 resized_array = np.array(resized_img)
 
-########################################################################
-# Experiementing with compression across different color filters
-sepia_image = apply_sepia(resized_array)
-X_sepia = np.reshape(sepia_image, (sepia_image.shape[0] * sepia_image.shape[1], 3))
-X_img = X_sepia
-########################################################################
+# ########################################################################
+# # Experiementing with compression across different color filters
+# sepia_image = apply_sepia(resized_array)
+# X_sepia = np.reshape(sepia_image, (sepia_image.shape[0] * sepia_image.shape[1], 3))
+# X_img = X_sepia
+# ########################################################################
 
 X_img = np.reshape(resized_array, (resized_array.shape[0] * resized_array.shape[1], 3))
 
@@ -117,6 +117,11 @@ ax[1].imshow(X_recovered)
 ax[1].set_title('Compressed with %d colours'%K)
 ax[1].axis('off')
 plt.show()
+
+# Saving result
+compressed_img = Image.fromarray(X_recovered.astype('uint8'))
+compressed_img.save('compressed_image.png')
+print("Compressed image saved as compressed_image.png")
 
 # Calculating distortions
 distortions = []
